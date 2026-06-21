@@ -1,6 +1,6 @@
 # Installation & First-Time Setup
 
-This guide walks you through installing MishiMenu and getting it ready for your first day of service. No programming knowledge required.
+This guide walks you through installing ElGatoMenu and getting it ready for your first day of service. No programming knowledge required.
 
 ---
 
@@ -8,7 +8,7 @@ This guide walks you through installing MishiMenu and getting it ready for your 
 
 ### The computer
 
-MishiMenu runs on any computer that stays on during service hours. It does not need an internet connection once it is installed — everything runs on your local network.
+ElGatoMenu runs on any computer that stays on during service hours. It does not need an internet connection once it is installed — everything runs on your local network.
 
 | | Minimum | Recommended |
 |---|---|---|
@@ -21,28 +21,28 @@ A small dedicated mini-PC (Intel NUC, Beelink, or similar) works perfectly and c
 
 ### The network
 
-Customers access MishiMenu from their phones by connecting to the **same WiFi network** as the computer.
+Customers access ElGatoMenu from their phones by connecting to the **same WiFi network** as the computer.
 
 - The computer gets a local address like `192.168.1.50`
 - Customers open `http://192.168.1.50:3000` in their phone browser
 - Nothing needs the internet during a service shift — only the initial install does
 
-> **Tip:** Ask your router or internet provider to give the MishiMenu computer a fixed IP address. That way the URL never changes.
+> **Tip:** Ask your router or internet provider to give the ElGatoMenu computer a fixed IP address. That way the URL never changes.
 
 ---
 
-## Step 1 — Download MishiMenu
+## Step 1 — Download ElGatoMenu
 
 Open a terminal on the computer and run:
 
 ```bash
-git clone https://github.com/youruser/mishimenu
-cd mishimenu
+git clone https://github.com/youruser/elgatomenu
+cd elgatomenu
 ```
 
-If you don't have Git, download the ZIP from GitHub and extract it to a folder named `mishimenu`.
+If you don't have Git, download the ZIP from GitHub and extract it to a folder named `elgatomenu`.
 
-**Windows:** use Command Prompt or PowerShell and run all commands from the `mishimenu` folder.
+**Windows:** use Command Prompt or PowerShell and run all commands from the `elgatomenu` folder.
 
 ---
 
@@ -50,12 +50,12 @@ If you don't have Git, download the ZIP from GitHub and extract it to a folder n
 
 **Linux / Mac:**
 ```bash
-./mishimenu install
+./elgatomenu install
 ```
 
 **Windows:**
 ```
-mishimenu install
+elgatomenu install
 ```
 
 The wizard walks you through two questions, then does everything automatically:
@@ -74,7 +74,7 @@ After answering, the wizard:
 When it finishes you will see something like:
 
 ```
-✓ MishiMenu started.
+✓ ElGatoMenu started.
 
   App:       http://192.168.1.50:3000
   Dashboard: http://192.168.1.50:3000/dashboard
@@ -242,7 +242,7 @@ If a dish sells out, tap the **Activo** pill — it turns grey ("Oculto") and di
 
 Customers scan a QR code at the table to open the menu.
 
-1. Run `./mishimenu hostname` to see your URL
+1. Run `./elgatomenu hostname` to see your URL
 2. Go to a free QR generator (qr-code-generator.com or similar)
 3. Enter `http://192.168.1.50:3000`
 4. Download and print — one QR per table
@@ -284,4 +284,4 @@ If anything doesn't work, see [admin.md](admin.md) for troubleshooting.
 
 ## Auto-start on boot
 
-MishiMenu restarts automatically when the computer reboots. You do not need to run any command after a power outage. Wait about 2 minutes after the computer turns on, then check if the app is accessible.
+ElGatoMenu restarts automatically when the computer reboots. You do not need to run any command after a power outage. Wait about 2 minutes after the computer turns on, then check if the app is accessible.

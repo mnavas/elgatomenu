@@ -1,4 +1,4 @@
-const SESSION_KEY = 'mishimenu_session_id'
+const SESSION_KEY = 'elgatomenu_session_id'
 
 export function getOrCreateSessionId(): string {
   if (typeof window === 'undefined') return ''

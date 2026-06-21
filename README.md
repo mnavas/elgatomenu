@@ -1,4 +1,4 @@
-# MishiMenu
+# ElGatoMenu
 
 Self-hosted restaurant ordering and payment web app. One installation = one restaurant. Customers browse the menu on their phones, place orders, and pay digitally. The owner gets a real-time dashboard to verify receipts and manage orders.
 
@@ -9,14 +9,14 @@ Self-hosted restaurant ordering and payment web app. One installation = one rest
 ## Quick start
 
 ```bash
-git clone https://github.com/youruser/mishimenu
-cd mishimenu
-./mishimenu install
+git clone https://github.com/youruser/elgatomenu
+cd elgatomenu
+./elgatomenu install
 ```
 
 Windows:
 ```
-mishimenu install
+elgatomenu install
 ```
 
 The wizard asks two questions (your network URL and owner email/password), then handles everything else automatically.
@@ -27,7 +27,7 @@ The wizard asks two questions (your network URL and owner email/password), then 
 
 | Guide | Who it's for |
 |---|---|
-| [Installation & First-Time Setup](docs/install.md) | Setting up MishiMenu for the first time — hardware requirements, install steps, configuring restaurant info, building the menu |
+| [Installation & First-Time Setup](docs/install.md) | Setting up ElGatoMenu for the first time — hardware requirements, install steps, configuring restaurant info, building the menu |
 | [Daily Use Guide](docs/daily-use.md) | Running the restaurant day-to-day — dashboard, order flow, payment verification, fraud detection, managing the menu mid-service |
 | [Administration & Maintenance](docs/admin.md) | Backups, updates, troubleshooting, CLI reference, security |
 | [Menu Management & Pricing](docs/menu-management.md) | Tax and service fee configuration, image uploads, pricing formula, menu API reference |
@@ -51,7 +51,7 @@ The wizard asks two questions (your network URL and owner email/password), then 
 
 | Port | Service | Access |
 |---|---|---|
-| 3000 | MishiMenu app | Share with customers |
+| 3000 | ElGatoMenu app | Share with customers |
 | 3001 | Supabase Studio (admin panel) | Keep private |
 | 8000 | Supabase API | Used internally |
 
@@ -60,20 +60,20 @@ The wizard asks two questions (your network URL and owner email/password), then 
 ## CLI
 
 ```
-./mishimenu install      First-time setup
-./mishimenu start        Start all containers
-./mishimenu stop         Stop all containers
-./mishimenu restart      Restart all containers
-./mishimenu update       Pull latest version and rebuild
-./mishimenu logs         Live logs (Ctrl+C to stop)
-./mishimenu status       Show container status
-./mishimenu backup       Back up the database
-./mishimenu restore      Restore from a backup file
-./mishimenu hostname     List all network URLs
-./mishimenu add-owner    Create an owner login account
-./mishimenu seed         Re-seed restaurant row from .env
-./mishimenu keys         Show generated secrets
-./mishimenu help         Show all commands
+./elgatomenu install      First-time setup
+./elgatomenu start        Start all containers
+./elgatomenu stop         Stop all containers
+./elgatomenu restart      Restart all containers
+./elgatomenu update       Pull latest version and rebuild
+./elgatomenu logs         Live logs (Ctrl+C to stop)
+./elgatomenu status       Show container status
+./elgatomenu backup       Back up the database
+./elgatomenu restore      Restore from a backup file
+./elgatomenu hostname     List all network URLs
+./elgatomenu add-owner    Create an owner login account
+./elgatomenu seed         Re-seed restaurant row from .env
+./elgatomenu keys         Show generated secrets
+./elgatomenu help         Show all commands
 ```
 
 ---
@@ -97,7 +97,7 @@ The wizard asks two questions (your network URL and owner email/password), then 
 ## Repository layout
 
 ```
-mishimenu/
+elgatomenu/
 ├── app/                          Next.js App Router pages and API routes
 │   ├── page.tsx                  Customer menu
 │   ├── pay/[orderId]/            Payment and receipt upload
@@ -121,9 +121,9 @@ mishimenu/
 ├── docs/                         User and developer documentation
 ├── docker-compose.yml
 ├── Dockerfile
-├── mishimenu.py                  Management CLI (Python 3)
-├── mishimenu                     Linux/Mac launcher script
-└── mishimenu.bat                 Windows launcher script
+├── elgatomenu.py                  Management CLI (Python 3)
+├── elgatomenu                     Linux/Mac launcher script
+└── elgatomenu.bat                 Windows launcher script
 ```
 
 ---

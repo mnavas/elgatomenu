@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MishiMenu CLI — install, start, stop, update, and manage your server."""
+"""ElGatoMenu CLI — install, start, stop, update, and manage your server."""
 
 import base64
 import getpass
@@ -19,7 +19,7 @@ from pathlib import Path
 # ── Platform ──────────────────────────────────────────────────────────────────
 
 def _cmd():
-    return "mishimenu" if platform.system() == "Windows" else "./mishimenu"
+    return "elgatomenu" if platform.system() == "Windows" else "./elgatomenu"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 
@@ -207,7 +207,7 @@ def _env_file():
 
 def _check_installed():
     if not _env_file().exists():
-        err("MishiMenu is not set up yet.")
+        err("ElGatoMenu is not set up yet.")
         print("  Run " + bold(f"{_cmd()} install") + " first.")
         sys.exit(1)
 
@@ -284,7 +284,7 @@ def cmd_seed():
     transfer_name   = _read_env_value("RESTAURANT_TRANSFER_ACCOUNT_NAME")
 
     if not name:
-        err("RESTAURANT_NAME not set in .env. Run: ./mishimenu install")
+        err("RESTAURANT_NAME not set in .env. Run: ./elgatomenu install")
         sys.exit(1)
 
     sql = (
@@ -366,11 +366,11 @@ def cmd_add_owner():
 
 
 def cmd_install():
-    print(f"\n{bold('MishiMenu — Installation')}\n")
+    print(f"\n{bold('ElGatoMenu — Installation')}\n")
 
     env_file = _env_file()
     if env_file.exists():
-        ok("MishiMenu is already installed.")
+        ok("ElGatoMenu is already installed.")
         print("  Run " + bold(f"{_cmd()} start") + "     to start the server.")
         print("  Run " + bold(f"{_cmd()} status") + "    to check containers.")
         return
@@ -380,11 +380,11 @@ def cmd_install():
 
     env_example = HERE / ".env.example"
     if not env_example.exists():
-        err(".env.example not found. Make sure you're in the MishiMenu folder.")
+        err(".env.example not found. Make sure you're in the ElGatoMenu folder.")
         sys.exit(1)
 
     step(2, "App URL")
-    print(f"  {dim('This is the address customers will use to access MishiMenu.')}")
+    print(f"  {dim('This is the address customers will use to access ElGatoMenu.')}")
     ips = get_local_ips()
     url_options = [f"http://{ip}:3000" for ip in ips] + ["http://localhost:3000", "Enter manually"]
     idx = pick("Select the app URL:", url_options)
@@ -396,7 +396,7 @@ def cmd_install():
 
     print()
     step(3, "Owner account")
-    print(f"  {dim('This is the admin login for the MishiMenu dashboard.')}")
+    print(f"  {dim('This is the admin login for the ElGatoMenu dashboard.')}")
     print()
     owner_email    = ask("Owner email")
     owner_password = ask_password()
@@ -446,7 +446,7 @@ def cmd_install():
         )
         ok("docker/kong.yml written.")
 
-    step(5, "Building and starting MishiMenu…")
+    step(5, "Building and starting ElGatoMenu…")
     print(f"  {dim('This will take a few minutes the first time — images are being downloaded.')}")
     run("docker compose up -d --build")
 
@@ -489,7 +489,7 @@ def cmd_install():
 
     print()
     print("─" * 56)
-    ok(bold("MishiMenu is running!"))
+    ok(bold("ElGatoMenu is running!"))
     print()
     print("  Open in your browser:")
     _print_urls(app_url)
@@ -505,27 +505,27 @@ def cmd_install():
 
 def cmd_start():
     _check_installed()
-    info("Starting MishiMenu…")
+    info("Starting ElGatoMenu…")
     run("docker compose up -d")
     print()
-    ok(bold("MishiMenu started."))
+    ok(bold("ElGatoMenu started."))
     print()
     _print_urls(_read_env_value("NEXT_PUBLIC_APP_URL"))
     print()
 
 
 def cmd_stop():
-    info("Stopping MishiMenu…")
+    info("Stopping ElGatoMenu…")
     run("docker compose down")
-    ok("MishiMenu stopped.")
+    ok("ElGatoMenu stopped.")
 
 
 def cmd_restart():
     _check_installed()
-    info("Restarting MishiMenu…")
+    info("Restarting ElGatoMenu…")
     run("docker compose restart")
     print()
-    ok(bold("MishiMenu restarted."))
+    ok(bold("ElGatoMenu restarted."))
     print()
     _print_urls(_read_env_value("NEXT_PUBLIC_APP_URL"))
     print()
@@ -541,7 +541,7 @@ def cmd_status():
 
 
 def cmd_update():
-    print(f"\n{bold('MishiMenu — Update')}\n")
+    print(f"\n{bold('ElGatoMenu — Update')}\n")
 
     step(1, "Checking Git…")
     ensure_git()
@@ -550,13 +550,13 @@ def cmd_update():
     run("git pull origin main")
 
     step(3, "Rebuilding app image…")
-    run("docker compose build mishimenu")
+    run("docker compose build elgatomenu")
 
     step(4, "Restarting…")
     run("docker compose up -d")
 
     print()
-    ok(bold("MishiMenu updated and restarted."))
+    ok(bold("ElGatoMenu updated and restarted."))
     _print_urls(_read_env_value("NEXT_PUBLIC_APP_URL"))
 
 
@@ -566,7 +566,7 @@ def cmd_hostname():
     if not ips:
         warn("No network addresses detected.")
         return
-    print(bold("MishiMenu is reachable at:"))
+    print(bold("ElGatoMenu is reachable at:"))
     print()
     for ip in ips:
         print("  App:     " + cyan(f"http://{ip}:3000"))
@@ -582,7 +582,7 @@ def cmd_backup():
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     backup_dir = HERE / "backups"
     backup_dir.mkdir(exist_ok=True)
-    out_file = backup_dir / f"mishimenu_db_{timestamp}.sql"
+    out_file = backup_dir / f"elgatomenu_db_{timestamp}.sql"
 
     info(f"Backing up database to {dim(str(out_file))}…")
     pg_pass = _read_env_value("POSTGRES_PASSWORD")
@@ -601,7 +601,7 @@ def cmd_backup():
 
 def cmd_restore():
     if len(sys.argv) < 3:
-        err("Usage: mishimenu restore <backup-file.sql>")
+        err("Usage: elgatomenu restore <backup-file.sql>")
         sys.exit(1)
     backup_path = Path(sys.argv[2])
     if not backup_path.exists():
@@ -614,14 +614,14 @@ def cmd_restore():
         return
     info("Restoring database…")
     run(f'docker compose exec -T db bash -c "PGPASSWORD=$POSTGRES_PASSWORD psql -U postgres -d postgres" < "{backup_path}"')
-    ok("Database restored. Restart MishiMenu to apply.")
+    ok("Database restored. Restart ElGatoMenu to apply.")
     print("  " + bold(f"{_cmd()} restart"))
 
 
 def cmd_keys():
     _check_installed()
     print()
-    print(bold("MishiMenu — current secrets"))
+    print(bold("ElGatoMenu — current secrets"))
     print()
     for key in ("POSTGRES_PASSWORD", "JWT_SECRET", "OCR_INTERNAL_SECRET",
                 "ANON_KEY", "SERVICE_ROLE_KEY"):
@@ -635,11 +635,11 @@ def cmd_keys():
 
 def cmd_help():
     print(f"""
-{bold('MishiMenu')} — self-hosted restaurant ordering platform
+{bold('ElGatoMenu')} — self-hosted restaurant ordering platform
 
 {bold('USAGE')}
-  ./mishimenu <command>       (Linux / Mac)
-  mishimenu <command>         (Windows)
+  ./elgatomenu <command>       (Linux / Mac)
+  elgatomenu <command>         (Windows)
 
 {bold('COMMANDS')}
   {green('install')}      First-time setup: picks app URL, creates owner account, generates
@@ -650,19 +650,19 @@ def cmd_help():
   {green('restart')}      Restart all containers
   {green('update')}       Pull the latest version, rebuild the app, and restart
   {green('logs')}         View live logs  (Ctrl+C to stop)
-                 Optional: {dim('./mishimenu logs mishimenu')}  — app only
-                 Optional: {dim('./mishimenu logs db')}        — database only
+                 Optional: {dim('./elgatomenu logs elgatomenu')}  — app only
+                 Optional: {dim('./elgatomenu logs db')}        — database only
   {green('status')}       Show container status
   {green('seed')}         Insert/update the restaurant row from .env values
   {green('add-owner')}    Create the owner login account (email + password)
-  {green('backup')}       Dump the database to backups/mishimenu_db_<timestamp>.sql
-  {green('restore')}      Restore a database backup: {dim('./mishimenu restore backups/file.sql')}
-  {green('hostname')}     List all URLs where MishiMenu is reachable on the network
+  {green('backup')}       Dump the database to backups/elgatomenu_db_<timestamp>.sql
+  {green('restore')}      Restore a database backup: {dim('./elgatomenu restore backups/file.sql')}
+  {green('hostname')}     List all URLs where ElGatoMenu is reachable on the network
   {green('keys')}         Show the generated secrets (truncated)
   {green('help')}         Show this message
 
 {bold('PORTS')}
-  3000  MishiMenu app  (share this URL with customers)
+  3000  ElGatoMenu app  (share this URL with customers)
   3001  Supabase Studio (admin panel — keep private)
   8000  Supabase API (used internally by the app)
 """)

@@ -10,7 +10,7 @@ const supabase = createClient(
 )
 
 async function seed() {
-  console.log('Seeding MishiMenu test data…')
+  console.log('Seeding ElGatoMenu test data…')
 
   // ── Restaurant ────────────────────────────────────────────
   const { data: restaurant, error: rErr } = await supabase

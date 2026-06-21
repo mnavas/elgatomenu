@@ -6,10 +6,10 @@ import { ToastProvider } from '@/components/ui/Toast'
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 
 export const metadata: Metadata = {
-  title: 'MishiMenu',
+  title: 'ElGatoMenu',
   description: 'Pide y paga en tu restaurante favorito',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'MishiMenu' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ElGatoMenu' },
 }
 
 export const viewport: Viewport = {

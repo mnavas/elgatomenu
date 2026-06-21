@@ -1,0 +1,6 @@
+#!/bin/sh
+# ElGatoMenu CLI — Linux / Mac entry point
+# Usage: ./elgatomenu <command>
+set -e
+cd "$(dirname "$0")"
+exec python3 elgatomenu.py "$@"

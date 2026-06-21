@@ -1,36 +1,36 @@
 # Administration & Maintenance
 
-This guide covers managing your team, keeping backups, updating MishiMenu, and troubleshooting common problems.
+This guide covers managing your team, keeping backups, updating ElGatoMenu, and troubleshooting common problems.
 
 ---
 
 ## CLI quick reference
 
-Run these commands from the `mishimenu` folder on the server computer. On Windows, replace `./mishimenu` with `mishimenu`.
+Run these commands from the `elgatomenu` folder on the server computer. On Windows, replace `./elgatomenu` with `elgatomenu`.
 
 | Command | What it does |
 |---|---|
-| `./mishimenu start` | Start all services |
-| `./mishimenu stop` | Stop all services |
-| `./mishimenu restart` | Restart all services |
-| `./mishimenu status` | Show whether each service is running |
-| `./mishimenu logs` | Live logs from all services (Ctrl+C to stop) |
-| `./mishimenu logs mishimenu` | Logs from the web app only |
-| `./mishimenu logs db` | Database logs only |
-| `./mishimenu hostname` | Print all URLs where the app is reachable |
-| `./mishimenu backup` | Save a database backup to `backups/` |
-| `./mishimenu restore backups/file.sql` | Restore a database backup |
-| `./mishimenu update` | Pull latest code, rebuild, restart |
-| `./mishimenu seed` | Re-seed the restaurant row from `.env` values |
-| `./mishimenu add-owner` | Create an admin login account |
-| `./mishimenu keys` | Show the generated secrets (truncated) |
-| `./mishimenu help` | Show all commands |
+| `./elgatomenu start` | Start all services |
+| `./elgatomenu stop` | Stop all services |
+| `./elgatomenu restart` | Restart all services |
+| `./elgatomenu status` | Show whether each service is running |
+| `./elgatomenu logs` | Live logs from all services (Ctrl+C to stop) |
+| `./elgatomenu logs elgatomenu` | Logs from the web app only |
+| `./elgatomenu logs db` | Database logs only |
+| `./elgatomenu hostname` | Print all URLs where the app is reachable |
+| `./elgatomenu backup` | Save a database backup to `backups/` |
+| `./elgatomenu restore backups/file.sql` | Restore a database backup |
+| `./elgatomenu update` | Pull latest code, rebuild, restart |
+| `./elgatomenu seed` | Re-seed the restaurant row from `.env` values |
+| `./elgatomenu add-owner` | Create an admin login account |
+| `./elgatomenu keys` | Show the generated secrets (truncated) |
+| `./elgatomenu help` | Show all commands |
 
 ---
 
 ## Managing your team
 
-You can create individual logins for your staff and control exactly which parts of MishiMenu they can access.
+You can create individual logins for your staff and control exactly which parts of ElGatoMenu they can access.
 
 ### User roles
 
@@ -80,7 +80,7 @@ This permanently deletes their login. They will not be able to access the system
 
 ### Resetting a password
 
-There is no self-service password reset in MishiMenu. If a staff member forgets their password:
+There is no self-service password reset in ElGatoMenu. If a staff member forgets their password:
 
 1. Delete their account (👥 → 🗑)
 2. Create a new one with a new password (👥 → + Añadir usuario)
@@ -89,7 +89,7 @@ There is no self-service password reset in MishiMenu. If a staff member forgets 
 
 Use the CLI:
 ```bash
-./mishimenu add-owner
+./elgatomenu add-owner
 ```
 
 You will be asked for an email and password (entered twice for confirmation). This account has full admin access.
@@ -101,10 +101,10 @@ You will be asked for an email and password (entered twice for confirmation). Th
 ### Create a backup
 
 ```bash
-./mishimenu backup
+./elgatomenu backup
 ```
 
-This saves a file like `backups/mishimenu_db_20260516_093000.sql` in the project folder.
+This saves a file like `backups/elgatomenu_db_20260516_093000.sql` in the project folder.
 
 The backup includes:
 - All menu categories and items
@@ -117,7 +117,7 @@ It does **not** include uploaded receipt images or dish photos (those are in Doc
 ### Recommended backup schedule
 
 - **Daily** — at the end of each business day
-- **Before every update** — always back up before running `./mishimenu update`
+- **Before every update** — always back up before running `./elgatomenu update`
 - **After major menu changes** — when you restructure the menu significantly
 
 ### Store backups off the computer
@@ -130,23 +130,23 @@ The `backups/` folder is on the same machine. If the computer fails, you lose ev
 ### Restore from backup
 
 ```bash
-./mishimenu restore backups/mishimenu_db_20260516_093000.sql
+./elgatomenu restore backups/elgatomenu_db_20260516_093000.sql
 ```
 
 > **Warning:** this overwrites the current database. All changes since the backup was made will be lost. You will be asked to confirm before it proceeds.
 
-After restoring, restart MishiMenu:
+After restoring, restart ElGatoMenu:
 ```bash
-./mishimenu restart
+./elgatomenu restart
 ```
 
 ---
 
-## Updating MishiMenu
+## Updating ElGatoMenu
 
 ```bash
-./mishimenu backup
-./mishimenu update
+./elgatomenu backup
+./elgatomenu update
 ```
 
 Always back up first. The update command:
@@ -164,7 +164,7 @@ The app is briefly unavailable during the restart step (usually under 30 seconds
 
 | Port | Service | Who accesses it |
 |---|---|---|
-| 3000 | MishiMenu app | Customers and staff — share this URL |
+| 3000 | ElGatoMenu app | Customers and staff — share this URL |
 | 3001 | Supabase Studio | You only — do NOT share publicly |
 | 8000 | Supabase API | Used internally by the app |
 
@@ -182,7 +182,7 @@ Login: username `supabase`, password = your Postgres password (found in `.env` a
 
 ### The `.env` file
 
-The `.env` file in the `mishimenu` folder contains all secrets: database password, signing keys, and internal tokens. Never share this file. If it is ever exposed, run `./mishimenu install` on a fresh copy to generate new secrets (this resets the database — back up first).
+The `.env` file in the `elgatomenu` folder contains all secrets: database password, signing keys, and internal tokens. Never share this file. If it is ever exposed, run `./elgatomenu install` on a fresh copy to generate new secrets (this resets the database — back up first).
 
 ### Network exposure
 
@@ -199,31 +199,31 @@ For most restaurants with a local WiFi setup, nothing extra is needed. If your s
 
 Check container status:
 ```bash
-./mishimenu status
+./elgatomenu status
 ```
 
 All services should show `Up`. If any show `Restarting` or `Exited`:
 ```bash
-./mishimenu logs        # see what's going wrong
-./mishimenu restart     # try a restart first
+./elgatomenu logs        # see what's going wrong
+./elgatomenu restart     # try a restart first
 ```
 
 If the app keeps restarting:
 ```bash
-./mishimenu logs mishimenu
+./elgatomenu logs elgatomenu
 ```
 
 If everything is stopped:
 ```bash
-./mishimenu start
+./elgatomenu start
 ```
 
 ---
 
 ### Customers can't reach the app on their phones
 
-1. Confirm MishiMenu is running (`./mishimenu status`)
-2. Run `./mishimenu hostname` — verify the IP address
+1. Confirm ElGatoMenu is running (`./elgatomenu status`)
+2. Run `./elgatomenu hostname` — verify the IP address
 3. Confirm the customer's phone is on **the same WiFi** as the server computer
 4. Try opening the URL from the server computer itself — if that works but phones can't, it's a network issue
 5. Check if the router blocks device-to-device traffic ("AP isolation" or "client isolation") — disable it if so
@@ -234,7 +234,7 @@ If everything is stopped:
 
 The restaurant row in the database is missing. Run:
 ```bash
-./mishimenu seed
+./elgatomenu seed
 ```
 
 ---
@@ -243,7 +243,7 @@ The restaurant row in the database is missing. Run:
 
 If your email and password aren't working, create a new admin account:
 ```bash
-./mishimenu add-owner
+./elgatomenu add-owner
 ```
 
 You will be prompted for an email and a new password (typed twice).
@@ -262,7 +262,7 @@ The dashboard uses a live connection (WebSocket) to receive orders without refre
 
 1. Check that the `realtime` container is running:
    ```bash
-   ./mishimenu status
+   ./elgatomenu status
    ```
 2. If it shows `Restarting`, restart it:
    ```bash
@@ -284,7 +284,7 @@ Also confirm the staff member's account has the **Cocina** role (👥 in the das
 - Check that the image is clear and not too dark
 - Screenshots from DeUna and Sipi apps are the most reliably read
 - Blurry or rotated images may fail — you can still verify manually
-- Check app logs for errors: `./mishimenu logs mishimenu`
+- Check app logs for errors: `./elgatomenu logs elgatomenu`
 
 Manual verification always overrides OCR — a failed OCR does not block you from approving an order.
 
@@ -306,9 +306,9 @@ docker system prune
 
 ### After a power outage
 
-MishiMenu restarts automatically. Wait about 2 minutes after power is restored. If it doesn't come back:
+ElGatoMenu restarts automatically. Wait about 2 minutes after power is restored. If it doesn't come back:
 ```bash
-./mishimenu start
+./elgatomenu start
 ```
 
 Orders being placed at the exact moment of the outage may be lost. Orders already in the database are preserved.
@@ -328,8 +328,8 @@ SITE_URL=http://192.168.1.100:3000
 
 Then rebuild and restart:
 ```bash
-docker compose build mishimenu
-./mishimenu restart
+docker compose build elgatomenu
+./elgatomenu restart
 ```
 
 ### Change an admin password
@@ -347,9 +347,9 @@ Go to ⚙️ in the dashboard → Información del restaurante → update the na
 If you need to wipe everything and start fresh:
 
 ```bash
-./mishimenu stop
+./elgatomenu stop
 docker compose down -v    # removes all volumes including the database
-./mishimenu install
+./elgatomenu install
 ```
 
 > **Warning:** `docker compose down -v` permanently deletes all data. Back up first if you want to keep anything.

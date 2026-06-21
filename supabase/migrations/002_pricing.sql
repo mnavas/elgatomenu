@@ -1,6 +1,6 @@
--- MishiMenu migration 002 — Tax and service fee support
+-- ElGatoMenu migration 002 — Tax and service fee support
 -- Run once on existing installations:
---   docker exec mishimenu-db-1 psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/002_pricing.sql
+--   docker exec elgatomenu-db-1 psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/002_pricing.sql
 -- New installations: applied automatically from /docker-entrypoint-initdb.d/
 
 -- ─────────────────────────────────────────────

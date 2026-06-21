@@ -1,5 +1,5 @@
--- MishiMenu initial schema — single-tenant
--- Apply via: ./mishimenu install (seeds via psql in Docker)
+-- ElGatoMenu initial schema — single-tenant
+-- Apply via: ./elgatomenu install (seeds via psql in Docker)
 -- Or manually: psql -h localhost -U postgres -d postgres -f supabase/migrations/001_initial.sql
 
 create extension if not exists "uuid-ossp";

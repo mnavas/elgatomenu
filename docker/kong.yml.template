@@ -1,7 +1,7 @@
 _format_version: "1.1"
 
 ###############################################################################
-# Kong declarative config for MishiMenu self-hosted Supabase
+# Kong declarative config for ElGatoMenu self-hosted Supabase
 # Routes all Supabase API calls from the Next.js app to the correct services
 ###############################################################################
 

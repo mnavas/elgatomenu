@@ -7,7 +7,7 @@ export async function getRestaurant(): Promise<Restaurant> {
   if (_cached) return _cached
   const supabase = createServiceClient()
   const { data, error } = await supabase.from('restaurant').select('*').single()
-  if (error || !data) throw new Error('Restaurant not configured. Run ./mishimenu install first.')
+  if (error || !data) throw new Error('Restaurant not configured. Run ./elgatomenu install first.')
   _cached = data as Restaurant
   return _cached
 }

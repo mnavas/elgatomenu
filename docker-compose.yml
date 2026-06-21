@@ -1,6 +1,6 @@
 version: "3.8"
 
-# MishiMenu — full self-hosted stack
+# ElGatoMenu — full self-hosted stack
 # Requires: .env (copy from .env.example, then run scripts/generate-keys.sh)
 # Start: docker compose up -d
 # Stop:  docker compose down
@@ -10,7 +10,7 @@ volumes:
   storage_data:
 
 networks:
-  mishimenu:
+  elgatomenu:
     driver: bridge
 
 services:
@@ -22,7 +22,7 @@ services:
     image: supabase/postgres:15.6.1.143
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./supabase/migrations:/docker-entrypoint-initdb.d
@@ -44,7 +44,7 @@ services:
     image: supabase/gotrue:v2.158.1
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     depends_on:
       db:
         condition: service_healthy
@@ -68,7 +68,7 @@ services:
     image: postgrest/postgrest:v12.2.3
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     depends_on:
       db:
         condition: service_healthy
@@ -86,7 +86,7 @@ services:
     image: supabase/realtime:v2.30.34
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     depends_on:
       db:
         condition: service_healthy
@@ -118,7 +118,7 @@ services:
     image: supabase/storage-api:v1.11.13
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     depends_on:
       db:
         condition: service_healthy
@@ -146,7 +146,7 @@ services:
     image: darthsim/imgproxy:v3.8.0
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     environment:
       IMGPROXY_BIND: ":8080"
       IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
@@ -160,7 +160,7 @@ services:
     image: kong:2.8.1
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     ports:
       - "8000:8000"   # Supabase API (used by Next.js as SUPABASE_URL)
       - "8443:8443"   # Supabase API (HTTPS, needs cert)
@@ -187,15 +187,15 @@ services:
       retries: 5
 
   # ─────────────────────────────────────────────
-  # MishiMenu — Next.js web server
+  # ElGatoMenu — Next.js web server
   # ─────────────────────────────────────────────
-  mishimenu:
+  elgatomenu:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     ports:
       - "3000:3000"
     depends_on:
@@ -217,7 +217,7 @@ services:
     image: supabase/studio:20240729-ce42139
     restart: unless-stopped
     networks:
-      - mishimenu
+      - elgatomenu
     ports:
       - "3001:3000"
     depends_on:
@@ -230,5 +230,5 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DEFAULT_ORGANIZATION_NAME: MishiMenu
-      DEFAULT_PROJECT_NAME: mishimenu
+      DEFAULT_ORGANIZATION_NAME: ElGatoMenu
+      DEFAULT_PROJECT_NAME: elgatomenu

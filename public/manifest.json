@@ -1,6 +1,6 @@
 {
-  "name": "MishiMenu",
-  "short_name": "MishiMenu",
+  "name": "ElGatoMenu",
+  "short_name": "ElGatoMenu",
   "description": "Pide y paga en tu restaurante favorito",
   "start_url": "/",
   "display": "standalone",

@@ -13,4 +13,4 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-python "%DIR%mishimenu.py" %*
+python "%DIR%elgatomenu.py" %*

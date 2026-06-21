@@ -1,6 +1,6 @@
 # Menu Management & Pricing
 
-This guide explains how to manage your menu and how MishiMenu calculates the final price customers pay.
+This guide explains how to manage your menu and how ElGatoMenu calculates the final price customers pay.
 
 ---
 

@@ -1,19 +1,19 @@
 # Daily Use Guide
 
-Everything you need to run MishiMenu during a normal day of service.
+Everything you need to run ElGatoMenu during a normal day of service.
 
 ---
 
 ## Starting the day
 
-MishiMenu starts automatically when the computer boots. You do not need to run any command.
+ElGatoMenu starts automatically when the computer boots. You do not need to run any command.
 
 Open the dashboard on any device on your network:
 ```
 http://{your-ip}:3000/dashboard
 ```
 
-If the page doesn't load, run `./mishimenu start` from the terminal. See [admin.md](admin.md) if you need to troubleshoot.
+If the page doesn't load, run `./elgatomenu start` from the terminal. See [admin.md](admin.md) if you need to troubleshoot.
 
 ---
 
@@ -39,7 +39,7 @@ The customer sees:
 - Your QR code or account details
 - A 15-minute countdown timer
 
-They complete the payment in their app, screenshot the confirmation, then return to MishiMenu and upload the screenshot.
+They complete the payment in their app, screenshot the confirmation, then return to ElGatoMenu and upload the screenshot.
 
 **5. Payment — cash or card.**
 No upload needed. The customer simply confirms the order, then comes to the counter to pay. Their order appears on your dashboard immediately.
@@ -171,7 +171,7 @@ New orders appear automatically on the kitchen screen as you verify them — no 
 
 ## Fraud detection
 
-MishiMenu checks every uploaded receipt automatically for two types of fraud:
+ElGatoMenu checks every uploaded receipt automatically for two types of fraud:
 
 ### 1. Same image uploaded twice
 A customer tries to use one screenshot to pay for two orders. The system computes a fingerprint of every image. If the same file is uploaded again, the order is flagged.
@@ -262,7 +262,7 @@ You click ✓ Verificar
 
 2. **Back up the database:**
 ```bash
-./mishimenu backup
+./elgatomenu backup
 ```
 This saves a backup file in the `backups/` folder. Do this every day before closing. See [admin.md](admin.md) for details on storing backups safely.
 
