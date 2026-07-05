@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState<'login' | 'reset' | 'reset_sent'>('login')
+  const [mode, setMode] = useState<'login' | 'reset'>('login')
   const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
@@ -27,58 +27,27 @@ export default function LoginPage() {
     }
   }
 
-  async function handleReset(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) { showToast({ text: 'Ingresa tu correo', type: 'error' }); return }
-    setLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
-    setLoading(false)
-    if (error) {
-      showToast({ text: error.message, type: 'error' })
-    } else {
-      setMode('reset_sent')
-    }
-  }
-
-  if (mode === 'reset_sent') {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-sm space-y-4 text-center">
-          <p className="text-3xl">📬</p>
-          <h1 className="text-xl font-bold text-zinc-900">Revisa tu correo</h1>
-          <p className="text-sm text-zinc-500">
-            Si <strong>{email}</strong> está registrado, recibirás un enlace para restablecer tu contraseña.
-          </p>
-          <button onClick={() => setMode('login')} className="text-sm text-emerald-600 hover:underline">
-            Volver al inicio de sesión
-          </button>
-        </div>
-      </div>
-    )
-  }
-
+  // Self-hosted installs have no email server, so recovery happens from the
+  // server's terminal instead of a reset-by-email flow.
   if (mode === 'reset') {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-zinc-900">Recuperar contraseña</h1>
-            <p className="mt-1 text-sm text-zinc-500">Te enviaremos un enlace por correo</p>
+            <p className="mt-1 text-sm text-zinc-500">Se hace desde el computador del restaurante</p>
           </div>
-          <form onSubmit={handleReset} className="space-y-4">
-            <input
-              type="email"
-              required
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-zinc-300 px-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-            />
-            <Button type="submit" loading={loading} className="w-full">
-              Enviar enlace de recuperación
-            </Button>
-          </form>
+          <div className="space-y-3 rounded-xl bg-zinc-50 p-4 text-sm text-zinc-600">
+            <p>
+              En el computador donde está instalado ElGatoMenu, abre una terminal
+              en la carpeta <strong>elgatomenu</strong> y ejecuta:
+            </p>
+            <pre className="overflow-x-auto rounded-lg bg-zinc-900 px-3 py-2 font-mono text-xs text-emerald-300">./elgatomenu reset-password</pre>
+            <p>
+              Te pedirá el correo de la cuenta y la nueva contraseña.
+              En Windows el comando es <span className="font-mono text-xs">elgatomenu reset-password</span>.
+            </p>
+          </div>
           <p className="text-center">
             <button onClick={() => setMode('login')} className="text-sm text-zinc-500 hover:text-zinc-700 underline">
               Volver al inicio de sesión

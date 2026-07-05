@@ -17,6 +17,11 @@ const METHOD_ICONS: Record<PaymentMethod, string> = {
   card:     '💳',
 }
 
+// 0.125 → "12.5", 0.15 → "15" (Math.round would show 12.5% as 13%)
+function formatRate(rate: number): string {
+  return String(parseFloat((rate * 100).toFixed(2)))
+}
+
 const METHOD_DESC: Record<PaymentMethod, string> = {
   deuna:    'Billetera Pichincha',
   sipi:     'Billetera digital',
@@ -75,7 +80,6 @@ export default function OrderSummary({ restaurant, cart, onClose, onOrderCreated
   }
 
   const sym = restaurant.currency_symbol ?? '$'
-  const isInPersonPayment = paymentMethod === 'cash' || paymentMethod === 'card'
   const submitLabel = `Confirmar pedido — ${sym}${total.toFixed(2)}`
 
   return (
@@ -107,13 +111,13 @@ export default function OrderSummary({ restaurant, cart, onClose, onOrderCreated
           )}
           {restaurant.show_price_breakdown && taxAmount > 0 && (
             <div className="flex justify-between text-sm text-zinc-500">
-              <span>IVA ({Math.round(restaurant.tax_rate * 100)}%)</span>
+              <span>IVA ({formatRate(restaurant.tax_rate)}%)</span>
               <span>{sym}{taxAmount.toFixed(2)}</span>
             </div>
           )}
           {restaurant.show_price_breakdown && serviceFeeAmount > 0 && (
             <div className="flex justify-between text-sm text-zinc-500">
-              <span>Servicio ({Math.round(restaurant.service_fee_rate * 100)}%)</span>
+              <span>Servicio{restaurant.service_fee_rate > 0 ? ` (${formatRate(restaurant.service_fee_rate)}%)` : ''}</span>
               <span>{sym}{serviceFeeAmount.toFixed(2)}</span>
             </div>
           )}
@@ -132,7 +136,19 @@ export default function OrderSummary({ restaurant, cart, onClose, onOrderCreated
           tableError={tableError}
         />
 
-        {/* Payment method */}
+        {/* Payment method — single accepted method shows as a fixed row */}
+        {methods.length === 1 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-zinc-700">Método de pago</p>
+            <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm text-zinc-700">
+              <span className="text-lg">{METHOD_ICONS[methods[0]]}</span>
+              <div>
+                <p className="font-medium leading-tight">{PAYMENT_METHOD_LABELS[methods[0]]}</p>
+                <p className="text-xs text-zinc-500 leading-tight">{METHOD_DESC[methods[0]]}</p>
+              </div>
+            </div>
+          </div>
+        )}
         {methods.length > 1 && (
           <div className="space-y-2">
             <p className="text-sm font-medium text-zinc-700">Método de pago</p>

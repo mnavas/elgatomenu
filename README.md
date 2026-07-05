@@ -19,7 +19,7 @@ Windows:
 elgatomenu install
 ```
 
-The wizard asks two questions (your network URL and owner email/password), then handles everything else automatically.
+The wizard asks three questions (your network URL, restaurant name, and owner email/password), then handles everything else automatically.
 
 ---
 
@@ -71,6 +71,7 @@ The wizard asks two questions (your network URL and owner email/password), then 
 ./elgatomenu restore      Restore from a backup file
 ./elgatomenu hostname     List all network URLs
 ./elgatomenu add-owner    Create an owner login account
+./elgatomenu reset-password  Reset a dashboard account password
 ./elgatomenu seed         Re-seed restaurant row from .env
 ./elgatomenu keys         Show generated secrets
 ./elgatomenu help         Show all commands

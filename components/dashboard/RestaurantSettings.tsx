@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, type ReactNode } from 'react'
-import Link from 'next/link'
+import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import type { Restaurant, PaymentMethod, PaymentPolicy } from '@/lib/types'
 import { PAYMENT_METHOD_LABELS } from '@/lib/types'
 import { calcBreakdown } from '@/lib/pricing'
@@ -61,12 +62,45 @@ export default function RestaurantSettings({ restaurant }: Props) {
   const [serviceFeeMode, setServiceFeeMode] = useState<ServiceFeeMode>(initServiceFeeMode(restaurant))
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
+  const [dirty, setDirty]       = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const router = useRouter()
+
+  // Warn before closing the tab with unsaved changes
+  useEffect(() => {
+    if (!dirty) return
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [dirty])
+
+  function handleBack() {
+    if (dirty && !confirm('Tienes cambios sin guardar. ¿Salir de todas formas?')) return
+    router.push('/dashboard')
+  }
 
   function set(field: string, value: unknown) {
     setForm(prev => ({ ...prev, [field]: value }))
     setSaved(false)
+    setDirty(true)
     setErrorMsg('')
+  }
+
+  // QR uploads persist immediately on the server, so they don't mark the form dirty
+  function setQrUrl(field: 'deuna_qr_url' | 'sipi_qr_url', url: string | null) {
+    setForm(prev => ({ ...prev, [field]: url ?? '' }))
+  }
+
+  function changeTaxMode(mode: TaxMode) {
+    setTaxMode(mode)
+    setSaved(false)
+    setDirty(true)
+  }
+
+  function changeServiceFeeMode(mode: ServiceFeeMode) {
+    setServiceFeeMode(mode)
+    setSaved(false)
+    setDirty(true)
   }
 
   function toggleMethod(method: PaymentMethod) {
@@ -102,6 +136,7 @@ export default function RestaurantSettings({ restaurant }: Props) {
       const feeFixed   = (serviceFeeMode === 'fixed'   || serviceFeeMode === 'both') ? (parseFloat(form.service_fee_fixed) || 0)       : 0
       const body = {
         ...form,
+        currency_symbol:         form.currency_symbol.trim() || '$',
         address:                 form.address || null,
         phone:                   form.phone || null,
         ruc:                     form.ruc || null,
@@ -127,6 +162,7 @@ export default function RestaurantSettings({ restaurant }: Props) {
         throw new Error(d.error ?? 'Error al guardar')
       }
       setSaved(true)
+      setDirty(false)
     } catch (e) {
       setErrorMsg((e as Error).message)
     } finally {
@@ -137,9 +173,9 @@ export default function RestaurantSettings({ restaurant }: Props) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="text-sm text-zinc-500 hover:text-zinc-700">
+        <button type="button" onClick={handleBack} className="text-sm text-zinc-500 hover:text-zinc-700">
           ← Dashboard
-        </Link>
+        </button>
         <h1 className="text-xl font-bold text-zinc-900">Configuración</h1>
       </div>
 
@@ -196,7 +232,7 @@ export default function RestaurantSettings({ restaurant }: Props) {
               type="text"
               maxLength={3}
               value={CURRENCY_PRESETS.includes(form.currency_symbol) ? '' : form.currency_symbol}
-              onChange={e => { if (e.target.value) set('currency_symbol', e.target.value) }}
+              onChange={e => set('currency_symbol', e.target.value)}
               placeholder="…"
               className="w-14 rounded-lg border border-zinc-300 px-2 py-2 text-center text-sm font-bold text-zinc-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -209,20 +245,20 @@ export default function RestaurantSettings({ restaurant }: Props) {
         <SectionTitle>IVA (impuesto al valor agregado)</SectionTitle>
         <RadioCard
           active={taxMode === 'none'}
-          onClick={() => { setTaxMode('none'); setSaved(false) }}
+          onClick={() => { changeTaxMode('none') }}
           label="No cobro IVA"
           desc="Los precios del menú no incluyen IVA y no se cobra al cliente."
         />
         <RadioCard
           active={taxMode === 'included'}
-          onClick={() => { setTaxMode('included'); setSaved(false) }}
+          onClick={() => { changeTaxMode('included') }}
           label="Los precios del menú ya incluyen el IVA"
           desc="El IVA está dentro del precio. No se agrega nada extra al pagar."
           extra={taxMode === 'included' ? <RateInput label="Tasa de IVA" value={form.tax_rate} onChange={v => set('tax_rate', v)} hint="Ecuador: 15%" /> : undefined}
         />
         <RadioCard
           active={taxMode === 'added'}
-          onClick={() => { setTaxMode('added'); setSaved(false) }}
+          onClick={() => { changeTaxMode('added') }}
           label="El IVA se suma al precio final"
           desc="Los precios del menú no incluyen IVA. Se calcula y se muestra al cliente al pagar."
           extra={taxMode === 'added' ? <RateInput label="Tasa de IVA" value={form.tax_rate} onChange={v => set('tax_rate', v)} hint="Ecuador: 15%" /> : undefined}
@@ -234,27 +270,27 @@ export default function RestaurantSettings({ restaurant }: Props) {
         <SectionTitle>Cargo por servicio</SectionTitle>
         <RadioCard
           active={serviceFeeMode === 'none'}
-          onClick={() => { setServiceFeeMode('none'); setSaved(false) }}
+          onClick={() => { changeServiceFeeMode('none') }}
           label="Sin cargo de servicio"
           desc="No se cobra ningún cargo adicional."
         />
         <RadioCard
           active={serviceFeeMode === 'percent'}
-          onClick={() => { setServiceFeeMode('percent'); setSaved(false) }}
+          onClick={() => { changeServiceFeeMode('percent') }}
           label="Porcentaje sobre el subtotal"
           desc="Ej.: 10% de servicio. Típico en restaurantes de Ecuador."
           extra={serviceFeeMode === 'percent' ? <RateInput label="Porcentaje" value={form.service_fee_rate} onChange={v => set('service_fee_rate', v)} /> : undefined}
         />
         <RadioCard
           active={serviceFeeMode === 'fixed'}
-          onClick={() => { setServiceFeeMode('fixed'); setSaved(false) }}
+          onClick={() => { changeServiceFeeMode('fixed') }}
           label="Tarifa fija por pedido"
           desc="Un monto fijo por cada pedido, sin importar el total."
           extra={serviceFeeMode === 'fixed' ? <FixedInput sym={sym} value={form.service_fee_fixed} onChange={v => set('service_fee_fixed', v)} /> : undefined}
         />
         <RadioCard
           active={serviceFeeMode === 'both'}
-          onClick={() => { setServiceFeeMode('both'); setSaved(false) }}
+          onClick={() => { changeServiceFeeMode('both') }}
           label="Porcentaje + tarifa fija"
           desc="Se cobra ambos: un porcentaje del subtotal y una tarifa fija."
           extra={serviceFeeMode === 'both' ? (
@@ -354,14 +390,26 @@ export default function RestaurantSettings({ restaurant }: Props) {
 
                 {active && method === 'deuna' && (
                   <div className="space-y-3 border-t border-zinc-100 px-4 pb-4 pt-3">
-                    <Field label="URL del QR de DeUna" value={form.deuna_qr_url} onChange={v => set('deuna_qr_url', v)} placeholder="https://..." />
-                    <Field label="Nombre de cuenta"    value={form.deuna_account_name} onChange={v => set('deuna_account_name', v)} />
+                    <QrUpload
+                      method="deuna"
+                      label="Código QR de DeUna"
+                      hint="Sube una foto o captura de pantalla del QR de cobro de tu app DeUna."
+                      currentUrl={form.deuna_qr_url}
+                      onChange={url => setQrUrl('deuna_qr_url', url)}
+                    />
+                    <Field label="Nombre de cuenta" value={form.deuna_account_name} onChange={v => set('deuna_account_name', v)} />
                   </div>
                 )}
                 {active && method === 'sipi' && (
                   <div className="space-y-3 border-t border-zinc-100 px-4 pb-4 pt-3">
-                    <Field label="URL del QR de Sipi" value={form.sipi_qr_url} onChange={v => set('sipi_qr_url', v)} placeholder="https://..." />
-                    <Field label="Nombre de cuenta"   value={form.sipi_account_name} onChange={v => set('sipi_account_name', v)} />
+                    <QrUpload
+                      method="sipi"
+                      label="Código QR de Sipi"
+                      hint="Sube una foto o captura de pantalla del QR de cobro de tu app Sipi."
+                      currentUrl={form.sipi_qr_url}
+                      onChange={url => setQrUrl('sipi_qr_url', url)}
+                    />
+                    <Field label="Nombre de cuenta" value={form.sipi_account_name} onChange={v => set('sipi_account_name', v)} />
                   </div>
                 )}
                 {active && method === 'transfer' && (
@@ -369,6 +417,9 @@ export default function RestaurantSettings({ restaurant }: Props) {
                     <Field label="Banco"               value={form.transfer_bank} onChange={v => set('transfer_bank', v)} placeholder="Banco Pichincha" />
                     <Field label="Número de cuenta"    value={form.transfer_account_number} onChange={v => set('transfer_account_number', v)} />
                     <Field label="Titular de la cuenta" value={form.transfer_account_name} onChange={v => set('transfer_account_name', v)} />
+                    {!form.transfer_account_number.trim() && (
+                      <ConfigWarning text="Ingresa el número de cuenta — los clientes lo necesitan para transferir." />
+                    )}
                   </div>
                 )}
               </div>
@@ -377,24 +428,134 @@ export default function RestaurantSettings({ restaurant }: Props) {
         </div>
       </section>
 
-      {/* Save */}
-      <div className="pt-2">
-        {errorMsg && <p className="mb-3 text-sm text-red-600">{errorMsg}</p>}
-        {saved    && <p className="mb-3 text-sm text-emerald-600">✓ Cambios guardados</p>}
+      {/* Save — sticky so it's always reachable on this long page */}
+      <div className="sticky bottom-0 -mx-4 border-t border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur-sm">
+        {errorMsg && <p className="mb-2 text-sm text-red-600">{errorMsg}</p>}
         <button
           type="button"
           onClick={handleSave}
           disabled={saving || !form.name.trim()}
-          className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+          className={`w-full rounded-xl py-3 font-semibold text-white transition-colors disabled:opacity-50 ${
+            dirty ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-400'
+          }`}
         >
-          {saving ? 'Guardando…' : 'Guardar cambios'}
+          {saving ? 'Guardando…' : saved && !dirty ? '✓ Cambios guardados' : 'Guardar cambios'}
         </button>
+        {dirty && (
+          <p className="mt-1.5 text-center text-xs text-amber-600">Tienes cambios sin guardar</p>
+        )}
       </div>
     </div>
   )
 }
 
 // ─── small helpers ────────────────────────────────────────────────────────────
+
+function ConfigWarning({ text }: { text: string }) {
+  return (
+    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">⚠ {text}</p>
+  )
+}
+
+function QrUpload({ method, label, hint, currentUrl, onChange }: {
+  method: 'deuna' | 'sipi'
+  label: string
+  hint: string
+  currentUrl: string
+  onChange: (url: string | null) => void
+}) {
+  const [busy, setBusy]   = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function upload(file: File) {
+    setBusy(true)
+    setError('')
+    try {
+      const fd = new FormData()
+      fd.append('method', method)
+      fd.append('image', file)
+      const res = await fetch('/api/restaurant/payment-qr', { method: 'POST', body: fd })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Error al subir la imagen')
+      const { qr_url }: { qr_url: string } = await res.json()
+      onChange(qr_url)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove() {
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/restaurant/payment-qr?method=${method}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar la imagen')
+      onChange(null)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-zinc-700">{label}</label>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) upload(file)
+          e.target.value = ''
+        }}
+      />
+      {currentUrl ? (
+        <div className="flex items-center gap-3">
+          <div className="relative h-24 w-24 overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            <Image src={currentUrl} alt={label} fill className="object-contain" unoptimized />
+          </div>
+          <div className="space-y-1.5">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={busy}
+              className="block rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              {busy ? 'Subiendo…' : '📷 Cambiar imagen'}
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={busy}
+              className="block text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+            >
+              Quitar imagen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            {busy ? 'Subiendo…' : '📷 Subir imagen del QR'}
+          </button>
+          <p className="text-xs text-zinc-400">{hint}</p>
+          <ConfigWarning text="Los clientes no podrán pagar con este método hasta que subas el QR." />
+        </div>
+      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
+  )
+}
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (

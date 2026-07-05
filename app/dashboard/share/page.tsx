@@ -1,14 +1,12 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import { createServiceClient } from '@/lib/supabase/server'
 import { getRestaurant } from '@/lib/restaurant'
-import MenuEditor from '@/components/dashboard/MenuEditor'
-import type { Category, MenuItem } from '@/lib/types'
+import ShareMenu from '@/components/dashboard/ShareMenu'
 
 export const dynamic = 'force-dynamic'
 
-export default async function MenuPage() {
+export default async function SharePage() {
   const cookieStore = await cookies()
   const supabaseAuth = createServerClient(
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,18 +26,8 @@ export default async function MenuPage() {
   const { data: { user } } = await supabaseAuth.auth.getUser()
   if (!user) redirect('/dashboard/login')
 
-  const supabase = createServiceClient()
-  const [{ data: categories }, { data: items }, restaurant] = await Promise.all([
-    supabase.from('categories').select('*').order('sort_order').order('name'),
-    supabase.from('menu_items').select('*').order('sort_order').order('name'),
-    getRestaurant(),
-  ])
+  const restaurant = await getRestaurant()
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  return (
-    <MenuEditor
-      initialCategories={(categories ?? []) as Category[]}
-      initialItems={(items ?? []) as MenuItem[]}
-      currencySymbol={restaurant.currency_symbol ?? '$'}
-    />
-  )
+  return <ShareMenu restaurantName={restaurant.name} appUrl={appUrl} />
 }

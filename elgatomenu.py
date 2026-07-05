@@ -67,13 +67,26 @@ def ask(prompt, default=None):
     return val or default or ""
 
 def ask_password(prompt="Password (min 6 chars)"):
-    """Prompt for a password twice and return it (or exit if they don't match)."""
+    """Prompt for a password twice and return it. Enforces the 6-char minimum
+    up front — GoTrue would otherwise reject it much later, after the build."""
     while True:
-        pw  = getpass.getpass(f"  {prompt}: ")
+        pw = getpass.getpass(f"  {prompt}: ")
+        if len(pw) < 6:
+            print(f"  {red('Password must be at least 6 characters — try again.')}")
+            continue
         pw2 = getpass.getpass(f"  Confirm password: ")
         if pw == pw2:
             return pw
         print(f"  {red('Passwords do not match — try again.')}")
+
+def ask_email(prompt="Owner email"):
+    """Prompt for an email until it looks valid. A typo here is unrecoverable
+    from the web UI (self-hosted installs can't send reset emails)."""
+    while True:
+        email = ask(prompt).strip()
+        if re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            return email
+        print(f"  {red('That does not look like a valid email — try again.')}")
 
 def ask_yes(prompt, default=True):
     suffix = "[Y/n]" if default else "[y/N]"
@@ -333,12 +346,8 @@ def cmd_add_owner():
     print()
     print(bold("Add restaurant owner account"))
     print()
-    email    = ask("Owner email")
+    email    = ask_email()
     password = ask_password()
-
-    if not email or not password:
-        err("Email and password are required.")
-        sys.exit(1)
 
     service_key = _read_env_value("SERVICE_ROLE_KEY") or _read_env_value("SUPABASE_SERVICE_ROLE_KEY")
     supa_url    = _read_env_value("NEXT_PUBLIC_SUPABASE_URL") or "http://localhost:8000"
@@ -362,6 +371,55 @@ def cmd_add_owner():
     except urllib.error.HTTPError as e:
         body = e.read().decode()
         err(f"GoTrue error ({e.code}): {body}")
+        sys.exit(1)
+
+
+def cmd_reset_password():
+    """Reset the password of an existing dashboard account (no email needed)."""
+    import urllib.request
+    import urllib.error
+    _check_installed()
+
+    print()
+    print(bold("Reset a dashboard account password"))
+    print()
+    email    = ask_email("Account email")
+    password = ask_password("New password (min 6 chars)")
+
+    service_key = _read_env_value("SERVICE_ROLE_KEY") or _read_env_value("SUPABASE_SERVICE_ROLE_KEY")
+    supa_url    = _read_env_value("NEXT_PUBLIC_SUPABASE_URL") or "http://localhost:8000"
+    headers     = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {service_key}",
+        "apikey": service_key,
+    }
+
+    # Find the user by email (single-restaurant installs have only a handful of accounts)
+    try:
+        req = urllib.request.Request(f"{supa_url}/auth/v1/admin/users?per_page=1000", headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            users = json.loads(resp.read()).get("users", [])
+    except urllib.error.HTTPError as e:
+        err(f"GoTrue error ({e.code}): {e.read().decode()}")
+        sys.exit(1)
+
+    user = next((u for u in users if u.get("email", "").lower() == email.lower()), None)
+    if not user:
+        err(f"No account found with email: {email}")
+        print("  Run " + bold(f"{_cmd()} add-owner") + " to create a new account.")
+        sys.exit(1)
+
+    payload = json.dumps({"password": password}).encode()
+    req = urllib.request.Request(
+        f"{supa_url}/auth/v1/admin/users/{user['id']}",
+        data=payload, headers=headers, method="PUT",
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            json.loads(resp.read())
+        ok(f"Password updated for {bold(email)}. You can now log in at the dashboard.")
+    except urllib.error.HTTPError as e:
+        err(f"GoTrue error ({e.code}): {e.read().decode()}")
         sys.exit(1)
 
 
@@ -395,24 +453,27 @@ def cmd_install():
         ok(f"Using: {cyan(app_url)}")
 
     print()
-    step(3, "Owner account")
+    step(3, "Restaurant name")
+    print(f"  {dim('Shown to customers at the top of the menu. You can change it later in Settings.')}")
+    print()
+    restaurant_name = ask("Restaurant name", default="Mi Restaurante")
+
+    print()
+    step(4, "Owner account")
     print(f"  {dim('This is the admin login for the ElGatoMenu dashboard.')}")
     print()
-    owner_email    = ask("Owner email")
+    owner_email    = ask_email()
     owner_password = ask_password()
 
     print()
-    step(4, "Generating secrets…")
+    step(5, "Generating secrets…")
     postgres_password = secrets.token_urlsafe(20)
     jwt_secret        = secrets.token_hex(32)
     ocr_secret        = secrets.token_urlsafe(20)
 
     anon_key, service_key = generate_supabase_keys(jwt_secret)
 
-    ok(f"Postgres password:    {dim(postgres_password)}")
-    ok(f"JWT secret:           {dim(jwt_secret[:24] + '…')}")
-    ok(f"OCR internal secret:  {dim(ocr_secret)}")
-    ok("Supabase JWT keys:    generated")
+    ok("Secrets generated (Postgres password, JWT secret, Supabase keys).")
     print(f"  {dim('All secrets are saved in .env — keep that file private.')}")
 
     env_content = (
@@ -432,7 +493,7 @@ def cmd_install():
         # the same host as app_url but on port 8000 (Kong's public port).
         .replace("http://localhost:8000", app_url.replace(":3000", ":8000"))
     )
-    env_content += f"\nRESTAURANT_NAME=Mi Restaurante\nOWNER_EMAIL={owner_email}\n"
+    env_content += f"\nRESTAURANT_NAME={restaurant_name}\nOWNER_EMAIL={owner_email}\n"
     env_file.write_text(env_content)
     ok(".env saved.")
 
@@ -446,16 +507,17 @@ def cmd_install():
         )
         ok("docker/kong.yml written.")
 
-    step(5, "Building and starting ElGatoMenu…")
+    step(6, "Building and starting ElGatoMenu…")
     print(f"  {dim('This will take a few minutes the first time — images are being downloaded.')}")
     run("docker compose up -d --build")
 
-    step(6, "Initializing database…")
+    step(7, "Initializing database…")
     _wait_for_supabase()
     seed_sql = (
         "INSERT INTO restaurant (name, payment_policy, accepted_payment_methods) "
-        "VALUES ('Mi Restaurante', 'upfront', '{cash}') ON CONFLICT DO NOTHING;"
+        f"VALUES ({_sql_str(restaurant_name)}, 'upfront', '{{cash}}') ON CONFLICT DO NOTHING;"
     )
+    db_initialized = True
     try:
         subprocess.run(
             "docker compose exec -T db bash -c 'PGPASSWORD=$POSTGRES_PASSWORD psql -U postgres -d postgres'",
@@ -463,29 +525,29 @@ def cmd_install():
         )
         ok("Database initialized.")
     except Exception as e:
+        db_initialized = False
         warn(f"DB init failed: {e}. Run {bold(_cmd() + ' seed')} later.")
 
-    step(7, "Creating owner account…")
-    if owner_email and owner_password:
-        try:
-            import urllib.request, urllib.error
-            supa_url = app_url.replace(":3000", ":8000") if ":3000" in app_url else "http://localhost:8000"
-            api_url  = f"{supa_url}/auth/v1/admin/users"
-            payload  = json.dumps({"email": owner_email, "password": owner_password, "email_confirm": True}).encode()
-            req = urllib.request.Request(
-                api_url, data=payload,
-                headers={"Content-Type": "application/json",
-                         "Authorization": f"Bearer {service_key}",
-                         "apikey": service_key},
-                method="POST",
-            )
-            with urllib.request.urlopen(req) as resp:
-                json.loads(resp.read())
-            ok(f"Owner account created: {bold(owner_email)}")
-        except Exception as e:
-            warn(f"Could not create owner account: {e}. Run {bold(_cmd() + ' add-owner')} later.")
-    else:
-        warn(f"No credentials entered. Run {bold(_cmd() + ' add-owner')} to create the owner account.")
+    step(8, "Creating owner account…")
+    owner_created = False
+    try:
+        import urllib.request, urllib.error
+        supa_url = app_url.replace(":3000", ":8000") if ":3000" in app_url else "http://localhost:8000"
+        api_url  = f"{supa_url}/auth/v1/admin/users"
+        payload  = json.dumps({"email": owner_email, "password": owner_password, "email_confirm": True}).encode()
+        req = urllib.request.Request(
+            api_url, data=payload,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {service_key}",
+                     "apikey": service_key},
+            method="POST",
+        )
+        with urllib.request.urlopen(req) as resp:
+            json.loads(resp.read())
+        owner_created = True
+        ok(f"Owner account created: {bold(owner_email)}")
+    except Exception as e:
+        warn(f"Could not create owner account: {e}")
 
     print()
     print("─" * 56)
@@ -494,10 +556,16 @@ def cmd_install():
     print("  Open in your browser:")
     _print_urls(app_url)
     print()
-    print(f"  Dashboard:  {cyan(app_url + '/dashboard')}")
-    print()
-    print(f"  {bold('Next step:')} log in and go to {cyan(app_url + '/dashboard/settings')}")
-    print(f"  {dim('Set your restaurant name, payment methods, and account details there.')}")
+    if not owner_created:
+        warn(bold("The owner account was NOT created."))
+        print(f"  Run {bold(_cmd() + ' add-owner')} to create it, then log in.")
+        print()
+    if not db_initialized:
+        warn(bold("The database was NOT initialized."))
+        print(f"  Run {bold(_cmd() + ' seed')} to initialize it.")
+        print()
+    print(f"  {bold('Next step:')} open the Dashboard, log in, and follow the setup checklist")
+    print(f"  {dim('(restaurant info, payment methods, and your menu).')}")
     print()
     print(f"  Run {bold(_cmd() + ' help')} to see all available commands.")
     print()
@@ -642,9 +710,9 @@ def cmd_help():
   elgatomenu <command>         (Windows)
 
 {bold('COMMANDS')}
-  {green('install')}      First-time setup: picks app URL, creates owner account, generates
-                 secrets, builds and starts everything. Configure the restaurant
-                 (name, payment methods, etc.) at /dashboard/settings afterwards.
+  {green('install')}      First-time setup: asks for app URL, restaurant name, and owner
+                 account, then builds and starts everything. Finish configuring
+                 (payment methods, menu) from the dashboard setup checklist.
   {green('start')}        Start all containers
   {green('stop')}         Stop all containers
   {green('restart')}      Restart all containers
@@ -655,6 +723,7 @@ def cmd_help():
   {green('status')}       Show container status
   {green('seed')}         Insert/update the restaurant row from .env values
   {green('add-owner')}    Create the owner login account (email + password)
+  {green('reset-password')}  Reset the password of an existing dashboard account
   {green('backup')}       Dump the database to backups/elgatomenu_db_<timestamp>.sql
   {green('restore')}      Restore a database backup: {dim('./elgatomenu restore backups/file.sql')}
   {green('hostname')}     List all URLs where ElGatoMenu is reachable on the network
@@ -680,6 +749,7 @@ COMMANDS = {
     "update":     cmd_update,
     "seed":       cmd_seed,
     "add-owner":  cmd_add_owner,
+    "reset-password": cmd_reset_password,
     "hostname":   cmd_hostname,
     "backup":     cmd_backup,
     "restore":    cmd_restore,

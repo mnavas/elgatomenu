@@ -23,6 +23,7 @@ Run these commands from the `elgatomenu` folder on the server computer. On Windo
 | `./elgatomenu update` | Pull latest code, rebuild, restart |
 | `./elgatomenu seed` | Re-seed the restaurant row from `.env` values |
 | `./elgatomenu add-owner` | Create an admin login account |
+| `./elgatomenu reset-password` | Reset the password of an existing account |
 | `./elgatomenu keys` | Show the generated secrets (truncated) |
 | `./elgatomenu help` | Show all commands |
 
@@ -241,12 +242,12 @@ The restaurant row in the database is missing. Run:
 
 ### Can't log in to the dashboard
 
-If your email and password aren't working, create a new admin account:
+If you forgot your password, reset it from the server:
 ```bash
-./elgatomenu add-owner
+./elgatomenu reset-password
 ```
 
-You will be prompted for an email and a new password (typed twice).
+You will be prompted for the account email and a new password (typed twice). To create a brand-new admin account instead, use `./elgatomenu add-owner`.
 
 ---
 

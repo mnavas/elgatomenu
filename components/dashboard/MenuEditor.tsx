@@ -8,6 +8,7 @@ import type { Category, MenuItem } from '@/lib/types'
 interface Props {
   initialCategories: Category[]
   initialItems: MenuItem[]
+  currencySymbol: string
 }
 
 type EditingItem = {
@@ -30,7 +31,7 @@ const EMPTY_ITEM: EditingItem = {
   available: true,
 }
 
-export default function MenuEditor({ initialCategories, initialItems }: Props) {
+export default function MenuEditor({ initialCategories, initialItems, currencySymbol }: Props) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [items, setItems]           = useState<MenuItem[]>(initialItems)
 
@@ -276,7 +277,7 @@ export default function MenuEditor({ initialCategories, initialItems }: Props) {
           <div className="w-24">
             <label className="text-xs font-medium text-zinc-500">Precio *</label>
             <div className="relative mt-1">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-zinc-400">{currencySymbol}</span>
               <input
                 type="number"
                 min="0"
@@ -315,6 +316,11 @@ export default function MenuEditor({ initialCategories, initialItems }: Props) {
             {editingItem.available ? 'Disponible' : 'No disponible'}
           </button>
         </div>
+
+        {/* Photo hint for new items — upload becomes available once the item is saved */}
+        {!editingItem.id && (
+          <p className="text-xs text-zinc-500">💡 Guarda el plato para poder subirle una foto.</p>
+        )}
 
         {/* Image upload — only shown when editing an existing (saved) item */}
         {editingItem.id && (() => {
@@ -478,7 +484,7 @@ export default function MenuEditor({ initialCategories, initialItems }: Props) {
                   )}
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-zinc-700">
-                  ${Number(item.price).toFixed(2)}
+                  {currencySymbol}{Number(item.price).toFixed(2)}
                 </span>
                 <button
                   onClick={() => toggleAvailable(item)}
@@ -584,12 +590,20 @@ export default function MenuEditor({ initialCategories, initialItems }: Props) {
       )}
 
       {/* Empty state */}
-      {categories.length === 0 && uncategorized.length === 0 && (
-        <div className="rounded-xl border-2 border-dashed border-zinc-200 py-16 text-center">
-          <p className="text-zinc-400">La carta está vacía.</p>
-          <p className="mt-1 text-sm text-zinc-400">
-            Empieza creando una categoría como &quot;Entradas&quot; o &quot;Platos fuertes&quot;.
-          </p>
+      {categories.length === 0 && uncategorized.length === 0 && editingCatId !== 'new' && (
+        <div className="rounded-xl border-2 border-dashed border-zinc-200 py-16 text-center space-y-4">
+          <div>
+            <p className="text-zinc-400">La carta está vacía.</p>
+            <p className="mt-1 text-sm text-zinc-400">
+              Empieza creando una categoría como &quot;Entradas&quot; o &quot;Platos fuertes&quot;.
+            </p>
+          </div>
+          <button
+            onClick={startNewCat}
+            className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            + Crear primera categoría
+          </button>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Order, Restaurant } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
@@ -13,6 +14,13 @@ interface Props {
 export default function KitchenDashboard({ restaurant, initialOrders }: Props) {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const supabase = createClient()
+  const router = useRouter()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/dashboard/login')
+    router.refresh()
+  }
 
   useEffect(() => {
     const channel = supabase
@@ -60,11 +68,20 @@ export default function KitchenDashboard({ restaurant, initialOrders }: Props) {
             <h1 className="text-xl font-bold">{restaurant.name}</h1>
             <p className="text-sm text-zinc-400">Cocina</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className={`h-2 w-2 rounded-full ${orders.length > 0 ? 'bg-amber-400 animate-pulse' : 'bg-zinc-600'}`} />
             <span className="text-sm text-zinc-400">
               {orders.length === 0 ? 'Sin pedidos' : `${orders.length} pedido${orders.length !== 1 ? 's' : ''}`}
             </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              ⏻
+            </button>
           </div>
         </div>
 

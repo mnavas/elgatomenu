@@ -58,13 +58,16 @@ If you don't have Git, download the ZIP from GitHub and extract it to a folder n
 elgatomenu install
 ```
 
-The wizard walks you through two questions, then does everything automatically:
+The wizard walks you through three questions, then does everything automatically:
 
 **Question 1 — App URL**
 It shows a numbered list of your computer's IP addresses. Pick the one on your restaurant WiFi. If unsure, pick the first option.
 
-**Question 2 — Owner email and password**
-This is your admin login for the dashboard. Use a real email address you own. You will be asked to type the password twice to confirm it — the characters are hidden as you type.
+**Question 2 — Restaurant name**
+Shown to customers at the top of the menu. You can change it later in Settings.
+
+**Question 3 — Owner email and password**
+This is your admin login for the dashboard. Use a real email address you own. The password must be at least 6 characters and you will be asked to type it twice to confirm — the characters are hidden as you type.
 
 After answering, the wizard:
 - Downloads and installs Docker if needed (~5 min first time)
@@ -81,7 +84,7 @@ When it finishes you will see something like:
   Studio:    http://192.168.1.50:3001
 ```
 
-Open the Dashboard link in your browser and log in.
+Open the Dashboard link in your browser and log in. The dashboard shows a **setup checklist** that walks you through the remaining steps: configuring your restaurant, building the menu, and printing the QR code for your tables.
 
 ---
 
@@ -183,8 +186,8 @@ Turn this on only if you have a screen in the kitchen (a tablet or monitor works
 Enable each method your restaurant accepts. After checking the box, extra fields appear for any method that needs configuration.
 
 **DeUna** (Banco Pichincha wallet)
-- Check the box, then enter:
-  - **URL del QR** — open DeUna on your phone → Cobrar → Copy link
+- Check the box, then:
+  - **Código QR** — open DeUna on your phone → Cobrar → take a screenshot of your payment QR, then upload it with the "Subir imagen del QR" button
   - **Nombre de cuenta** — the name on your account
 
 **Sipi** — same setup as DeUna.

@@ -2,20 +2,24 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { Order, Restaurant, StaffProfile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import DashboardStats from './DashboardStats'
 import OrderCard from './OrderCard'
 import FraudAlert from './FraudAlert'
+import SetupChecklist from './SetupChecklist'
 import { showToast } from '@/components/ui/Toast'
 
 interface Props {
   restaurant: Restaurant
   initialOrders: Order[]
   profile: StaffProfile | null
+  menuItemCount: number
 }
 
-export default function DashboardScreen({ restaurant, initialOrders, profile }: Props) {
+export default function DashboardScreen({ restaurant, initialOrders, profile, menuItemCount }: Props) {
+  const router = useRouter()
   const isAdmin = !profile || profile.is_admin
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set())
@@ -69,6 +73,12 @@ export default function DashboardScreen({ restaurant, initialOrders, profile }: 
       const d = await res.json()
       showToast({ text: d.error ?? 'Error al verificar', type: 'error' })
     }
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/dashboard/login')
+    router.refresh()
   }
 
   async function handleReject(orderId: string) {
@@ -145,9 +155,20 @@ export default function DashboardScreen({ restaurant, initialOrders, profile }: 
           )}
           {isAdmin && (
             <Link
+              href="/dashboard/share"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
+              title="Compartir menú (código QR)"
+              aria-label="Compartir menú (código QR)"
+            >
+              📱
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
               href="/dashboard/users"
               className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
               title="Usuarios"
+              aria-label="Usuarios"
             >
               👥
             </Link>
@@ -157,12 +178,29 @@ export default function DashboardScreen({ restaurant, initialOrders, profile }: 
               href="/dashboard/settings"
               className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
               title="Configuración"
+              aria-label="Configuración"
             >
               ⚙️
             </Link>
           )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+          >
+            ⏻
+          </button>
         </div>
       </div>
+
+      {isAdmin && (restaurant.name === 'Mi Restaurante' || menuItemCount === 0) && (
+        <SetupChecklist
+          nameConfigured={restaurant.name !== 'Mi Restaurante'}
+          menuHasItems={menuItemCount > 0}
+        />
+      )}
 
       <DashboardStats orders={active} currencySymbol={restaurant.currency_symbol ?? '$'} />
       <FraudAlert orders={active} onScrollTo={scrollToOrder} />

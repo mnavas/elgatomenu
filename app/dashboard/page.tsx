@@ -36,11 +36,23 @@ export default async function DashboardPage() {
   }
 
   const supabase = createServiceClient()
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('*, order_items(*), receipt:receipts(*)')
-    .not('status', 'in', '("expired","completed")')
-    .order('created_at', { ascending: false })
+  const [{ data: orders }, { count: menuItemCount }] = await Promise.all([
+    supabase
+      .from('orders')
+      .select('*, order_items(*), receipt:receipts(*)')
+      .not('status', 'in', '("expired","completed")')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('menu_items')
+      .select('id', { count: 'exact', head: true }),
+  ])
 
-  return <DashboardScreen restaurant={restaurant} initialOrders={orders ?? []} profile={profile} />
+  return (
+    <DashboardScreen
+      restaurant={restaurant}
+      initialOrders={orders ?? []}
+      profile={profile}
+      menuItemCount={menuItemCount ?? 0}
+    />
+  )
 }
